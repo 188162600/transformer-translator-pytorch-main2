@@ -145,7 +145,7 @@ def get_data_loader(opt):
     print(data_path_eval_src)
     train_dataset = ParallelCorpus(corpus_path_src=data_path_train_src, corpus_path_trg=data_path_train_trg,
                                    tokenizer_path_src=tokenizer_path_src, tokenizer_path_trg=tokenizer_path_trg,device=opt.device)
-    
+    opt.max_src_seq_length = max([len(x) for x in train_dataset.text_src])
     print("train dataset length",len(train_dataset))
      
    
@@ -154,7 +154,7 @@ def get_data_loader(opt):
         eval_dataset=ParallelCorpus(corpus_path_src=data_path_eval_src, corpus_path_trg=data_path_eval_trg,
                                   tokenizer_path_src=tokenizer_path_src, tokenizer_path_trg=tokenizer_path_trg,device=opt.device)
       
-       
+        opt.max_src_seq_length =max(opt.max_src_seq_length, max([len(x) for x in eval_dataset.text_src]))
     else:
         print("splitting the train dataset to train and eval")
         train_length = len(train_dataset)-opt.eval_length

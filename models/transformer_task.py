@@ -32,9 +32,9 @@ class TransformerTask:
 
         #  positional encoding
         self.src_pos_encoding = PositionalEncoding(model_dimension=opt.model_dimension,
-                                                   dropout_probability=opt.dropout_probability)
+                                                   dropout_probability=opt.dropout_probability, expected_max_sequence_length=opt.expected_max_sequence_length)
         self.trg_pos_encoding = PositionalEncoding(model_dimension=opt.model_dimension,
-                                                   dropout_probability=opt.dropout_probability)
+                                                   dropout_probability=opt.dropout_probability, expected_max_sequence_length=opt.expected_max_sequence_length)
         self.hidden_long_term=dict()
 
         def detach(args, kwargs):
