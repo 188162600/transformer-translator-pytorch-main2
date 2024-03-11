@@ -6,7 +6,10 @@ import torch.nn as nn
 
 class NextSteps:
     def __init__(self, tensor: torch.Tensor):
+        #print("tensor1",tensor.shape)
+        tensor=torch.sum(tensor, dim=0).unsqueeze(0)
         self.tensor = tensor
+        #print("tensor2",tensor.shape)
       
         self.indices = torch.argmax(tensor,dim=1)
         # print(self.indices)

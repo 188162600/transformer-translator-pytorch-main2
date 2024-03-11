@@ -21,6 +21,7 @@ import json
 import os
 import argparse
 import utils.utils as utils
+from torch.utils.data import random_split
 
 import os
 
@@ -117,55 +118,50 @@ def prepare_tokenizer(opt):
             os.makedirs(tokenizer_path_src)
         tokenizer_src.save_model(tokenizer_path_src)
     if not os.path.exists(tokenizer_path_trg):
-        tokenizer_trg = ByteLevelBPETokenizer()
-        tokenizer_trg.train(files=[data_path_train_trg], vocab_size=opt.trg_vocab_size, min_frequency=2,
-                            special_tokens=[
-                                "<pad>",
-                                "<mask>",
-                                "<unk>",
-                                "<s>",
-                                "</s>",
-                            ])
-        if not os.path.exists(tokenizer_path_trg):
-            os.makedirs(tokenizer_path_trg)
-        tokenizer_trg.save_model(tokenizer_path_trg)
+        if os.path.exists(tokenizer_path_trg) and os.path.exists(data_path_train_trg):
+            tokenizer_trg = ByteLevelBPETokenizer()
+            tokenizer_trg.train(files=[data_path_train_trg], vocab_size=opt.trg_vocab_size, min_frequency=2,
+                                special_tokens=[
+                                    "<pad>",
+                                    "<mask>",
+                                    "<unk>",
+                                    "<s>",
+                                    "</s>",
+                                ])
+            if not os.path.exists(tokenizer_path_trg):
+                os.makedirs(tokenizer_path_trg)
+            tokenizer_trg.save_model(tokenizer_path_trg)
     return tokenizer_path_src, tokenizer_path_trg, data_path_train_src, data_path_train_trg
-# def prepare_tokenizer(opt):
-#     tokenizer_path_src = opt.tokenizer_path_src.format_map(vars(opt))
-#     tokenizer_path_trg = opt.tokenizer_path_trg.format_map(vars(opt))
-#     data_path_train_src = opt.data_path_train_src.format_map(vars(opt))
-#     data_path_train_trg = opt.data_path_train_trg.format_map(vars(opt))
+def get_data_loader(opt):
+    tokenizer_path_src, tokenizer_path_trg, data_path_train_src, data_path_train_trg = prepare_tokenizer(opt)
+    data_path_eval_src = opt.data_path_eval_src.format_map(vars(opt))
+    data_path_eval_trg = opt.data_path_eval_trg.format_map(vars(opt))
 
-#     #if not os.path.exists(tokenizer_path_src):
+    train_dataset = ParallelCorpus(corpus_path_src=data_path_train_src, corpus_path_trg=data_path_train_trg,
+                                   tokenizer_path_src=tokenizer_path_src, tokenizer_path_trg=tokenizer_path_trg,device=opt.device)
+    
+  
+     
+   
+    
+    if os.path.exists(data_path_eval_src):
+        eval_dataset=ParallelCorpus(corpus_path_src=data_path_eval_src, corpus_path_trg=data_path_eval_trg,
+                                  tokenizer_path_src=tokenizer_path_src, tokenizer_path_trg=tokenizer_path_trg,device=opt.device)
+      
+       
+    else:
+        train_length = len(train_dataset)-opt.eval_length
+        eval_length = opt.eval_length
+        train_dataset, eval_dataset = random_split(train_dataset, [train_length, eval_length])
+     
+        
+    dataloader_train = DataLoader(train_dataset,batch_size=opt.batch_size,
+                                  shuffle=True,collate_fn=pad_to_max_with_mask)
+    dataloader_eval = DataLoader(eval_dataset,batch_size=opt.batch_size,
+                                 shuffle=False,collate_fn=pad_to_max_with_mask)
+    
+    return dataloader_train, dataloader_eval
 
-#     from tokenizers.implementations import ByteLevelBPETokenizer
-
-#     tokenizer_src = ByteLevelBPETokenizer()
-#     tokenizer_src.train(files=[data_path_train_src], vocab_size=opt.src_vocab_size, min_frequency=2,
-#                         special_tokens=[
-#                             "<pad>",
-#                             "<mask>",
-#                             "<unk>",
-#                             "<s>",
-#                             "</s>",
-#                         ])
-#     if not os.path.exists(tokenizer_path_src):
-#         os.makedirs(tokenizer_path_src)
-#     tokenizer_src.save_model(tokenizer_path_src)
-#     #if not os.path.exists(tokenizer_path_trg):
-#     tokenizer_trg = ByteLevelBPETokenizer()
-#     tokenizer_trg.train(files=[data_path_train_trg], vocab_size=opt.trg_vocab_size, min_frequency=2,
-#                         special_tokens=[
-#                             "<pad>",
-#                             "<mask>",
-#                             "<unk>",
-#                             "<s>",
-#                             "</s>",
-#                         ])
-#     if not os.path.exists(tokenizer_path_trg):
-#         os.makedirs(tokenizer_path_trg)
-#     tokenizer_trg.save_model(tokenizer_path_trg)
-#     return tokenizer_path_src, tokenizer_path_trg, data_path_train_src, data_path_train_trg
 
 
 if __name__ == "__main__":
@@ -178,24 +174,9 @@ if __name__ == "__main__":
 
     step_losses, train_losses, eval_losses, train_accuracy, eval_accuracy = load_trails(opt)
 
-    train_dataset = ParallelCorpus(corpus_path_src=data_path_train_src, corpus_path_trg=data_path_train_trg,
-                                   tokenizer_path_src=tokenizer_path_src, tokenizer_path_trg=tokenizer_path_trg,device=opt.device)
-    eval_dataset = ParallelCorpus(corpus_path_src=data_path_eval_src, corpus_path_trg=data_path_eval_trg,
-                                  tokenizer_path_src=tokenizer_path_src, tokenizer_path_trg=tokenizer_path_trg,device=opt.device)
-    #     train_dataset = parallelCorpus(corpus_path_src=training_config["data_path_train_src"], corpus_path_trg=training_config["data_path_train_trg"]  , tokenizer_path_src=training_config["tokenizer_path_src"] , tokenizer_path_trg=training_config["tokenizer_path_trg"])
-    #     eval_dataset = parallelCorpus(corpus_path_src=training_config["data_path_eval_src"], corpus_path_trg=training_config["data_path_eval_trg"]  , tokenizer_path_src=training_config["tokenizer_path_src"] , tokenizer_path_trg=training_config["tokenizer_path_trg"])
-
-    dataloader_train = DataLoader(train_dataset, collate_fn=pad_to_max_with_mask, batch_size=opt.batch_size,
-                                  shuffle=False)
-    dataloader_eval = DataLoader(eval_dataset, collate_fn=pad_to_max_with_mask, batch_size=opt.batch_size,
-                                 shuffle=False)
     
-    train_dataset=list(iter(dataloader_train))
-    eval_dataset=list(iter(dataloader_eval))
-    dataloader_train = DataLoader(train_dataset,batch_size=None,
-                                  shuffle=True)
-    dataloader_eval = DataLoader(eval_dataset,batch_size=None,
-                                 shuffle=False)
+    dataloader_train,dataloader_eval = get_data_loader(opt)
+            
     
     opt.dataloader_length = len(dataloader_train)
     model = TransformerModel(opt)  # create a dataset given opt.dataset_mode and other options

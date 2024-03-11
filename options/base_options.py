@@ -60,7 +60,7 @@ class BaseOptions():
         parser.add_argument("--eval_losses_pth"        , type=str   , help="the path of the json file that saves eval losses"    , default='{checkpoints_dir}/{project_name}/trails/{epoch}_eval_losses.json')
         parser.add_argument("--train_accuracy_pth"     , type=str   , help="the path of the json file that saves train accuracy" , default='{checkpoints_dir}/{project_name}/trails/{epoch}_train_accuracy.json')
         parser.add_argument("--eval_accuracy_pth"      , type=str   , help="the path of the json file that saves eval accuracy"  , default='{checkpoints_dir}/{project_name}/trails/{epoch}_eval_accuracy.json')
-
+        parser.add_argument("eval_length",type=int,default=3000)
     
         self.initialized = True
         return parser
