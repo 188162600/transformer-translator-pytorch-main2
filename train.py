@@ -103,7 +103,7 @@ def prepare_tokenizer(opt):
     data_path_train_src = opt.data_path_train_src.format_map(vars(opt))
     data_path_train_trg = opt.data_path_train_trg.format_map(vars(opt))
 
-    if not os.path.exists(tokenizer_path_src):
+    if opt.retokenize or not os.path.exists(tokenizer_path_src):
 
         from tokenizers.implementations import ByteLevelBPETokenizer
 
@@ -119,7 +119,7 @@ def prepare_tokenizer(opt):
         if not os.path.exists(tokenizer_path_src):
             os.makedirs(tokenizer_path_src)
         tokenizer_src.save_model(tokenizer_path_src)
-    if not os.path.exists(tokenizer_path_trg):
+    if opt.retokenize or not os.path.exists(tokenizer_path_trg):
         
             from tokenizers.implementations import ByteLevelBPETokenizer
         #if os.path.exists(tokenizer_path_trg) and os.path.exists(data_path_train_trg):
