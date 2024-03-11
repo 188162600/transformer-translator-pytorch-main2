@@ -120,7 +120,9 @@ def prepare_tokenizer(opt):
             os.makedirs(tokenizer_path_src)
         tokenizer_src.save_model(tokenizer_path_src)
     if not os.path.exists(tokenizer_path_trg):
-        if os.path.exists(tokenizer_path_trg) and os.path.exists(data_path_train_trg):
+        
+            from tokenizers.implementations import ByteLevelBPETokenizer
+        #if os.path.exists(tokenizer_path_trg) and os.path.exists(data_path_train_trg):
             tokenizer_trg = ByteLevelBPETokenizer()
             tokenizer_trg.train(files=[data_path_train_trg], vocab_size=opt.trg_vocab_size, min_frequency=2,
                                 special_tokens=[
@@ -132,17 +134,19 @@ def prepare_tokenizer(opt):
                                 ])
             if not os.path.exists(tokenizer_path_trg):
                 os.makedirs(tokenizer_path_trg)
+                
             tokenizer_trg.save_model(tokenizer_path_trg)
     return tokenizer_path_src, tokenizer_path_trg, data_path_train_src, data_path_train_trg
 def get_data_loader(opt):
+    
     tokenizer_path_src, tokenizer_path_trg, data_path_train_src, data_path_train_trg = prepare_tokenizer(opt)
     data_path_eval_src = opt.data_path_eval_src.format_map(vars(opt))
     data_path_eval_trg = opt.data_path_eval_trg.format_map(vars(opt))
-
+    print(data_path_eval_src)
     train_dataset = ParallelCorpus(corpus_path_src=data_path_train_src, corpus_path_trg=data_path_train_trg,
                                    tokenizer_path_src=tokenizer_path_src, tokenizer_path_trg=tokenizer_path_trg,device=opt.device)
     
-  
+    print("train dataset length",len(train_dataset))
      
    
     
@@ -152,6 +156,7 @@ def get_data_loader(opt):
       
        
     else:
+        print("splitting the train dataset to train and eval")
         train_length = len(train_dataset)-opt.eval_length
         eval_length = opt.eval_length
         train_dataset, eval_dataset = random_split(train_dataset, [train_length, eval_length])

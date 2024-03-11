@@ -5,7 +5,7 @@ from tokenizers.implementations import ByteLevelBPETokenizer
 import csv
 import re
 import copy
-
+import os
 
 
 class ParallelCorpus(Dataset):
@@ -17,6 +17,8 @@ class ParallelCorpus(Dataset):
     def __init__(self, corpus_path_src, corpus_path_trg, tokenizer_path_src, tokenizer_path_trg,device):
         text_src = list()
         text_trg = list()
+        os.makedirs(tokenizer_path_src, exist_ok=True)
+        os.makedirs(tokenizer_path_trg, exist_ok=True)
 
         tokenizer_src = ByteLevelBPETokenizer(
                 tokenizer_path_src + "/vocab.json",
@@ -26,7 +28,8 @@ class ParallelCorpus(Dataset):
                 tokenizer_path_trg + "/vocab.json",
                 tokenizer_path_trg + "/merges.txt"
                 )
-
+        print("tokenizer loaded",tokenizer_path_src,tokenizer_path_trg)
+        
         '''
         handle the src
         '''
@@ -42,7 +45,7 @@ class ParallelCorpus(Dataset):
                 #  mask_src.append(encoding.)
 
                 line = file.readline()
-
+        print("src done")
         
         '''
         handle the trg
@@ -59,6 +62,7 @@ class ParallelCorpus(Dataset):
                 #  mask_trg.append(encoding.)
 
                 line = file.readline()
+        print("trg done")
 
         self.text_src = text_src
         self.text_trg = text_trg
