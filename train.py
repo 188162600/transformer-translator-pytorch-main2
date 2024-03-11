@@ -155,7 +155,7 @@ def get_data_loader(opt):
         train_dataset, eval_dataset = random_split(train_dataset, [train_length, eval_length])
      
         
-    dataloader_train = DataLoader(train_dataset,batch_size=opt.batch_size,
+    dataloader_train = DataLoader(train_dataset,batch_size=opt.batch_size,num_workers=opt.num_threads,
                                   shuffle=True,collate_fn=pad_to_max_with_mask)
     dataloader_eval = DataLoader(eval_dataset,batch_size=opt.batch_size,
                                  shuffle=False,collate_fn=pad_to_max_with_mask)
