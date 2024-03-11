@@ -98,6 +98,8 @@ def save_trails(opt, step_losses, train_losses, eval_losses, train_accuracy, eva
 def prepare_tokenizer(opt):
     tokenizer_path_src = opt.tokenizer_path_src.format_map(vars(opt))
     tokenizer_path_trg = opt.tokenizer_path_trg.format_map(vars(opt))
+    os.makedirs(os.path.dirname(tokenizer_path_src), exist_ok=True)
+    os.makedirs(os.path.dirname(tokenizer_path_trg), exist_ok=True)
     data_path_train_src = opt.data_path_train_src.format_map(vars(opt))
     data_path_train_trg = opt.data_path_train_trg.format_map(vars(opt))
 
