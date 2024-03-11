@@ -13,7 +13,7 @@ from  torch.nn import LayerNorm
 from torch.nn.init import xavier_uniform_
 from .transformer_task import TransformerTask
 from utils.utils import label_smoothing
-from transformers import get_linear_schedule_with_warmup
+from utils.utils import get_linear_schedule_with_warmup
 from torch.optim import AdamW
 class TransformerModel:
 

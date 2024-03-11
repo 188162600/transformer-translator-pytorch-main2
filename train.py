@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 # from src.dataset import parallelCorpus
 from utils.utils import pad_to_max_with_mask, label_smoothing
 from models.transformer_model import TransformerModel
-from transformers import get_linear_schedule_with_warmup
+
 from torch.optim import AdamW
 from data.parallel_corpus import ParallelCorpus
 import json

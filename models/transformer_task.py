@@ -18,7 +18,7 @@ from torch.nn import functional as F
 from meta.next_steps import LinearStepClassifier,LSTMNextStepClassifier
 from utils.utils import get_causal_mask
 from itertools import chain
-from transformers import get_linear_schedule_with_warmup
+from utils.utils import get_linear_schedule_with_warmup
 from torch.optim import AdamW
 # from models2.model import Transformer as Transformer2
 
