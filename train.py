@@ -159,6 +159,8 @@ def get_data_loader(opt):
     eval_seq_length = eval_dataset.get_max_line_length()
     print("max length of the train dataset",train_seq_length,"max length of the eval dataset",eval_seq_length)
     opt.max_src_seq_length = max(train_seq_length, eval_seq_length)
+    filter_len=max(opt.batch_ignore_len,opt.batch_max_len)
+    opt.max_src_seq_length = min(opt.max_src_seq_length,filter_len)
    
     train_sampler= LengthBatchSampler(train_dataset.get_lines_length(),max_len=opt.batch_max_len,ignore_len=opt.batch_ignore_len, shuffle=True)
     eval_sampler = LengthBatchSampler(eval_dataset.get_lines_length(),max_len=opt.batch_max_len,ignore_len=opt.batch_ignore_len, shuffle=False)
