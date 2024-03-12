@@ -68,7 +68,7 @@ class BaseOptions():
         parser.add_argument("--batch_ignore_len"      , type=int   , help="ignore length of the batch"  , default=10000)
         parser.add_argument("--num_threads",type=int,default=4)
         parser.add_argument("--retokenize",type=bool,default=False)
-        parser.add_argument("--save_to_memory",type=bool,default=False)
+        parser.add_argument("--save_in_memory",type=bool,default=False)
         self.initialized = True
         return parser
 
