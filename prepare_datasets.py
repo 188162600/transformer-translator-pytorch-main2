@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 tokenizers.implementations.ByteLevelBPETokenizer()
 
-inspect_dataset("wmt14", "scripts")
+# inspect_dataset("wmt14", "scripts")
 path=f"./datasets/{args.src}_to_{args.trg}"
 builder = load_dataset_builder(
     "./scripts/wmt_utils.py",
