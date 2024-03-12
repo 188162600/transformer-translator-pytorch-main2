@@ -36,7 +36,7 @@ builder = load_dataset_builder(
     },
 
 )
-builder.download_and_prepare(trust_remote_code=True)
+builder.download_and_prepare()
 
 dataset=builder.as_dataset()
 dataset.save_to_disk(path)
