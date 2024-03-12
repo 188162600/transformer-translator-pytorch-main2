@@ -169,7 +169,13 @@ def get_data_loader(opt):
     #print("eval_sampler",list(eval_sampler)[0:5])
     dataloader_train= DataLoader(train_dataset, collate_fn=pad_to_max_with_mask, batch_sampler=train_sampler)
     dataloader_eval = DataLoader(eval_dataset, collate_fn=pad_to_max_with_mask, batch_sampler=eval_sampler)
-    
+    if opt.save_in_memory:
+        train_dataset= list(tqdm(train_dataset,desc="loading train dataset into memory",total=len(train_dataset)))
+        eval_dataset = list(eval_dataset,desc="loading eval dataset into memory",total=len(eval_dataset))
+        dataloader_train= DataLoader(train_dataset, batch_size=None,shuffle=True)
+        dataloader_eval = DataLoader(eval_dataset, batch_size=None,shuffle=False)
+        
+        
     return dataloader_train, dataloader_eval
 
 
