@@ -33,7 +33,7 @@ builder = load_dataset_builder(
         datasets.Split.VALIDATION: ["newsdev2014", "newstest2013"],
         datasets.Split.TEST: ["newstest2014"]
        # datasets.Split.VALIDATION: ["euelections_dev2019"],
-    },trust_remote_code=True
+    },
 
 )
 builder.download_and_prepare(trust_remote_code=True)
