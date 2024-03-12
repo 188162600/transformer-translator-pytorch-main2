@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 tokenizers.implementations.ByteLevelBPETokenizer()
 
-# inspect_dataset("wmt14", "scripts")
+inspect_dataset("wmt14", "scripts")
 path=f"./datasets/{args.src}_to_{args.trg}"
 builder = load_dataset_builder(
     "./scripts/wmt_utils.py",
@@ -33,9 +33,10 @@ builder = load_dataset_builder(
         datasets.Split.VALIDATION: ["newsdev2014", "newstest2013"],
         datasets.Split.TEST: ["newstest2014"]
        # datasets.Split.VALIDATION: ["euelections_dev2019"],
-    },
+    },trust_remote_code=True
+
 )
-builder.download_and_prepare()
+builder.download_and_prepare(trust_remote_code=True)
 
 dataset=builder.as_dataset()
 dataset.save_to_disk(path)
