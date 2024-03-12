@@ -20,7 +20,7 @@ class BaseOptions():
     def initialize(self, parser):
         """Define the common options that are used in both training and test."""
         # basic parameters
-        parser.add_argument('--name', type=str,default="zh_to_en",help='name of the experiment. It decides where to store samples and models')
+        parser.add_argument('--name', type=str,default="de_to_en",help='name of the experiment. It decides where to store samples and models')
         parser.add_argument('--project_name', type=str, default=None, help='name of the experiment. It decides where to store samples and models')
        
         parser.add_argument('--device', type=str, default=None)
@@ -32,8 +32,8 @@ class BaseOptions():
         parser.add_argument('--num_decoder_shared_layers', type=int, default=0, help='# of options in each layer')
         parser.add_argument('--num_classifier_encoder_layers', type=int, default=6, help='# of options in each layer')
 
-        parser.add_argument("--src_vocab_size"         , type=int   , help="src vocab size"                                      , default=10000)
-        parser.add_argument("--trg_vocab_size"         , type=int   , help="trg vocab size"                                      , default=10000)
+        parser.add_argument("--src_vocab_size"         , type=int   , help="src vocab size"                                      , default=25000)
+        parser.add_argument("--trg_vocab_size"         , type=int   , help="trg vocab size"                                      , default=25000)
         parser.add_argument("--model_dimension"        , type=int   , help="model dimmention"                                    , default=512)
         parser.add_argument("--number_of_heads"        , type=int   , help="number of heads"                                     , default=8)
         parser.add_argument("--dim_feedforward",type=int,default=2048)
@@ -49,10 +49,14 @@ class BaseOptions():
         
         parser.add_argument("--tokenizer_path_src"     , type=str   , help="the saved tokenizer of src language"                 , default='{dataroot}/{name}/tokenizer.src')
         parser.add_argument("--tokenizer_path_trg"     , type=str   , help="the saved tokenizer of trg language"                 , default='{dataroot}/{name}/tokenizer.trg')
-        parser.add_argument("--data_path_train_src"    , type=str   , help="the training dataset of src language"                , default='{dataroot}/{name}/train.src')
-        parser.add_argument("--data_path_train_trg"    , type=str   , help="the training dataset of trg language"                , default='{dataroot}/{name}/train.trg')
-        parser.add_argument("--data_path_eval_src"     , type=str   , help="the eval dataset of src language"                    , default='{dataroot}/{name}/val.src')
-        parser.add_argument("--data_path_eval_trg"     , type=str   , help="the eval dataset of trg language"                    , default='{dataroot}/{name}/val.trg')
+        
+        parser.add_argument("--tokenizer_data_source_src"     , type=str   , help="the saved tokenizer of src language"                 , default='{dataroot}/{name}/train/de_to_en.de')
+        parser.add_argument("--tokenizer_data_source_trg"     , type=str   , help="the saved tokenizer of src language"                 , default='{dataroot}/{name}/train/de_to_en.en')
+        
+        
+        parser.add_argument("--data_path_train"    , type=str   , help="the training dataset of trg language"                , default='{dataroot}/{name}/train/')
+        parser.add_argument("--data_path_eval"     , type=str   , help="the eval dataset of trg language"                    , default='{dataroot}/{name}/validation/')
+       
         parser.add_argument("--model_save_path"         , type=str   , help="the directory to save and load model"                         , default='{checkpoints_dir}/{project_name}/{epoch}_{model_name}.pth')
         #parser.add_argument("--model_path_src"         , type=str   , help="the directory to load model"                         , default='./saved_models/saved_dict.pth')
         parser.add_argument("--step_losses_pth"        , type=str   , help="the path of the json file that saves step losses"    , default='{checkpoints_dir}/{project_name}/trails/{epoch}_step_losses.json')
@@ -60,7 +64,8 @@ class BaseOptions():
         parser.add_argument("--eval_losses_pth"        , type=str   , help="the path of the json file that saves eval losses"    , default='{checkpoints_dir}/{project_name}/trails/{epoch}_eval_losses.json')
         parser.add_argument("--train_accuracy_pth"     , type=str   , help="the path of the json file that saves train accuracy" , default='{checkpoints_dir}/{project_name}/trails/{epoch}_train_accuracy.json')
         parser.add_argument("--eval_accuracy_pth"      , type=str   , help="the path of the json file that saves eval accuracy"  , default='{checkpoints_dir}/{project_name}/trails/{epoch}_eval_accuracy.json')
-        parser.add_argument("--eval_length",type=int,default=3000)
+        parser.add_argument("--batch_max_len"         , type=int   , help="max length of the batch"  , default=10000)
+        parser.add_argument("--batch_ignore_len"      , type=int   , help="ignore length of the batch"  , default=10000)
         parser.add_argument("--num_threads",type=int,default=4)
         parser.add_argument("--retokenize",type=bool,default=False)
         self.initialized = True

@@ -16,13 +16,15 @@ from utils.utils import pad_to_max_with_mask, label_smoothing
 from models.transformer_model import TransformerModel
 
 from torch.optim import AdamW
-from data.parallel_corpus import ParallelCorpus
+
+from data_.parallel_corpus import ParallelCorpus
+from data_.length_batch_sampler import LengthBatchSampler
 import json
 import os
 import argparse
 import utils.utils as utils
 from torch.utils.data import random_split
-
+from datasets import load_dataset
 import os
 
 
@@ -100,15 +102,15 @@ def prepare_tokenizer(opt):
     tokenizer_path_trg = opt.tokenizer_path_trg.format_map(vars(opt))
     os.makedirs(os.path.dirname(tokenizer_path_src), exist_ok=True)
     os.makedirs(os.path.dirname(tokenizer_path_trg), exist_ok=True)
-    data_path_train_src = opt.data_path_train_src.format_map(vars(opt))
-    data_path_train_trg = opt.data_path_train_trg.format_map(vars(opt))
+    data_path_src = opt.tokenizer_data_source_src.format_map(vars(opt))
+    data_path_trg = opt.tokenizer_data_source_trg.format_map(vars(opt))
 
     if opt.retokenize or not os.path.exists(tokenizer_path_src):
 
         from tokenizers.implementations import ByteLevelBPETokenizer
 
         tokenizer_src = ByteLevelBPETokenizer()
-        tokenizer_src.train(files=[data_path_train_src], vocab_size=opt.src_vocab_size, min_frequency=2,
+        tokenizer_src.train(files=[data_path_src], vocab_size=opt.src_vocab_size, min_frequency=2,
                             special_tokens=[
                                 "<pad>",
                                 "<mask>",
@@ -124,7 +126,7 @@ def prepare_tokenizer(opt):
             from tokenizers.implementations import ByteLevelBPETokenizer
         #if os.path.exists(tokenizer_path_trg) and os.path.exists(data_path_train_trg):
             tokenizer_trg = ByteLevelBPETokenizer()
-            tokenizer_trg.train(files=[data_path_train_trg], vocab_size=opt.trg_vocab_size, min_frequency=2,
+            tokenizer_trg.train(files=[data_path_trg], vocab_size=opt.trg_vocab_size, min_frequency=2,
                                 special_tokens=[
                                     "<pad>",
                                     "<mask>",
@@ -136,36 +138,35 @@ def prepare_tokenizer(opt):
                 os.makedirs(tokenizer_path_trg)
                 
             tokenizer_trg.save_model(tokenizer_path_trg)
-    return tokenizer_path_src, tokenizer_path_trg, data_path_train_src, data_path_train_trg
+    return tokenizer_path_src, tokenizer_path_trg
 def get_data_loader(opt):
     
-    tokenizer_path_src, tokenizer_path_trg, data_path_train_src, data_path_train_trg = prepare_tokenizer(opt)
-    data_path_eval_src = opt.data_path_eval_src.format_map(vars(opt))
-    data_path_eval_trg = opt.data_path_eval_trg.format_map(vars(opt))
-    print(data_path_eval_src)
-    train_dataset = ParallelCorpus(corpus_path_src=data_path_train_src, corpus_path_trg=data_path_train_trg,
-                                   tokenizer_path_src=tokenizer_path_src, tokenizer_path_trg=tokenizer_path_trg,device=opt.device)
-    opt.max_src_seq_length = max([len(x) for x in train_dataset.text_src])
-    print("train dataset length",len(train_dataset))
-     
+    tokenizer_path_src, tokenizer_path_trg = prepare_tokenizer(opt)
+    data_path_train = opt.data_path_train.format_map(vars(opt))
+    data_path_eval = opt.data_path_eval.format_map(vars(opt))
+    
    
     
-    if os.path.exists(data_path_eval_src):
-        eval_dataset=ParallelCorpus(corpus_path_src=data_path_eval_src, corpus_path_trg=data_path_eval_trg,
-                                  tokenizer_path_src=tokenizer_path_src, tokenizer_path_trg=tokenizer_path_trg,device=opt.device)
-      
-        opt.max_src_seq_length =max(opt.max_src_seq_length, max([len(x) for x in eval_dataset.text_src]))
-    else:
-        print("splitting the train dataset to train and eval")
-        train_length = len(train_dataset)-opt.eval_length
-        eval_length = opt.eval_length
-        train_dataset, eval_dataset = random_split(train_dataset, [train_length, eval_length])
-     
-        
-    dataloader_train = DataLoader(train_dataset,batch_size=opt.batch_size,num_workers=opt.num_threads,
-                                  shuffle=True,collate_fn=pad_to_max_with_mask)
-    dataloader_eval = DataLoader(eval_dataset,batch_size=opt.batch_size,
-                                 shuffle=False,collate_fn=pad_to_max_with_mask)
+    
+    train_dataset = ParallelCorpus(data_path_train,
+                                   tokenizer_path_src=tokenizer_path_src, tokenizer_path_trg=tokenizer_path_trg)
+    eval_dataset =ParallelCorpus(data_path_eval,
+                                  tokenizer_path_src=tokenizer_path_src, tokenizer_path_trg=tokenizer_path_trg)
+    #print("calculating the max length of the dataset")
+    print("train_dataset length",len(train_dataset))
+    print("eval_dataset length",len(eval_dataset))
+    train_seq_length =train_dataset.get_max_line_length()
+    eval_seq_length = eval_dataset.get_max_line_length()
+    print("max length of the train dataset",train_seq_length,"max length of the eval dataset",eval_seq_length)
+    opt.max_src_seq_length = max(train_seq_length, eval_seq_length)
+   
+    train_sampler= LengthBatchSampler(train_dataset.get_lines_length(),max_len=opt.batch_max_len,ignore_len=opt.batch_ignore_len, shuffle=True)
+    eval_sampler = LengthBatchSampler(eval_dataset.get_lines_length(),max_len=opt.batch_max_len,ignore_len=opt.batch_ignore_len, shuffle=False)
+   
+    #print("train_sampler",list(train_sampler)[0:5])
+    #print("eval_sampler",list(eval_sampler)[0:5])
+    dataloader_train= DataLoader(train_dataset, collate_fn=pad_to_max_with_mask, batch_sampler=train_sampler)
+    dataloader_eval = DataLoader(eval_dataset, collate_fn=pad_to_max_with_mask, batch_sampler=eval_sampler)
     
     return dataloader_train, dataloader_eval
 
@@ -175,14 +176,16 @@ if __name__ == "__main__":
 
     opt = TrainOptions().parse()  # get training options
     opt.epoch = opt.current_epoch
-    tokenizer_path_src, tokenizer_path_trg, data_path_train_src, data_path_train_trg = prepare_tokenizer(opt)
-    data_path_eval_src = opt.data_path_eval_src.format_map(vars(opt))
-    data_path_eval_trg = opt.data_path_eval_trg.format_map(vars(opt))
+    tokenizer_path_src, tokenizer_path_trg = prepare_tokenizer(opt)
+    # data_path_eval_src = opt.data_path_eval_src.format_map(vars(opt))
+    # data_path_eval_trg = opt.data_path_eval_trg.format_map(vars(opt))
 
     step_losses, train_losses, eval_losses, train_accuracy, eval_accuracy = load_trails(opt)
 
     
     dataloader_train,dataloader_eval = get_data_loader(opt)
+    print("dataloader_train length",len(dataloader_train))
+    print("dataloader_eval length",len(dataloader_eval))
             
     
     opt.dataloader_length = len(dataloader_train)
