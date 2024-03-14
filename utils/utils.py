@@ -220,7 +220,26 @@ def clear_for_bleu(data: torch.Tensor, eos=4) -> list:
     if eos in data_list:
         return data_list[:data_list.index(eos)]
     return data_list
+def select_smoothing_function(sentence_length):
+    """
+    Selects a smoothing function based on the length of the candidate sentence, with special handling for very short sentences.
 
+    :param sentence_length: The length of the candidate sentence.
+    :return: A smoothing function from NLTK's SmoothingFunction.
+    """
+    cc = SmoothingFunction()
+
+    if sentence_length <= 3:
+        # Very short sentences: Use the most aggressive smoothing method
+        return cc.method7
+    elif 4 <= sentence_length < 10:
+        # Short to medium length sentences: Use a balanced smoothing method
+        return cc.method4
+    else:
+        # Longer sentences: Less aggressive smoothing, assuming more n-gram matches
+        return cc.method1
+
+    
 smoothie = SmoothingFunction()
 def get_bleu_score(reference: torch.Tensor, candidate: torch.Tensor, eos=4,
                    methods=(smoothie.method1,smoothie.method2,smoothie.method3,smoothie.method4,smoothie.method5,smoothie.method7)):
@@ -228,7 +247,7 @@ def get_bleu_score(reference: torch.Tensor, candidate: torch.Tensor, eos=4,
 
     batch_size = reference.size(0)
 
-    scores=[0]*len(methods)
+    scores=[0]*(len(methods)+1)
     for ref, cand in zip(reference, candidate):
         ref_clean = clear_for_bleu(ref, eos)
         cand_clean = clear_for_bleu(cand, eos)
@@ -236,7 +255,7 @@ def get_bleu_score(reference: torch.Tensor, candidate: torch.Tensor, eos=4,
         print(ref_clean,cand_clean)
         for i,method in enumerate(methods):
             scores[i]+=sentence_bleu([ref_clean],cand_clean,smoothing_function=method)
-
+        scores[-1]+=sentence_bleu([ref_clean],cand_clean,smoothing_function=select_smoothing_function(min(len(ref_clean),len(cand_clean))))
 
 
 
