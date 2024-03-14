@@ -263,7 +263,7 @@ if __name__ == "__main__":
             model.save_network()
 
         print(
-            f'Epoch: {epoch + 1} \n Train Loss: {train_loss:.6f}, Train Acc: {train_acc:.6f} \n Eval Loss: {eval_loss:.6f}, Eval Acc: {eval_acc:.6f}, Eval Bleu: {eval_bleu:.6f} \n')
+            f'Epoch: {epoch + 1} \n Train Loss: {train_loss:.6f}, Train Acc: {train_acc:.6f} \n Eval Loss: {eval_loss:.6f}, Eval Acc: {eval_acc:.6f}, Eval Bleu: {eval_bleu} \n')
         save_trails(opt, step_losses, train_losses, eval_losses, train_accuracy, eval_accuracy)
 
     opt.epoch = "latest"

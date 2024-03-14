@@ -3,7 +3,11 @@ import torch.nn.functional as F
 
 import os
 from torch.optim.lr_scheduler import LambdaLR
-from datasets import load_metric
+
+from nltk.translate.bleu_score import sentence_bleu,SmoothingFunction
+
+
+
 
 def pad_to_max_with_mask(data):
     """
@@ -210,27 +214,32 @@ def get_linear_schedule_with_warmup(optimizer, num_warmup_steps, num_training_st
 
     return LambdaLR(optimizer, lr_lambda, last_epoch)
 
-def clear_for_bleu(data:torch.Tensor,eos=4):
-        assert len(data.shape)==1
-        data=list(data)
-        try:
-            eos_index=data.index(eos)
-            
-        except ValueError:
-            eos_index=-1
-        return data[:eos_index]
-bleu=load_metric("bleu")
-def get_bleu_score(reference, candidate, eos=4):
-    assert reference.size(0) == candidate.size(0)
+
+def clear_for_bleu(data: torch.Tensor, eos=4) -> list:
+    data_list = data.tolist()
+    if eos in data_list:
+        return data_list[:data_list.index(eos)]
+    return data_list
+
+smoothie = SmoothingFunction()
+def get_bleu_score(reference: torch.Tensor, candidate: torch.Tensor, eos=4,
+                   methods=(smoothie.method1,smoothie.method2,smoothie.method3,smoothie.method4,smoothie.method5,smoothie.method7)):
+    assert reference.size(0) == candidate.size(0), "Reference and candidate must have the same batch size"
+
     batch_size = reference.size(0)
-    #print("batch_size",batch_size)
-    result=0
-    for ref,cand in zip(reference,candidate):
-        ref=clear_for_bleu(ref,eos)
-        cand=clear_for_bleu(cand,eos)
-        result+=bleu.compute(predictions=[cand],references=[[ref]])["bleu"]
-       
-       
-    return result,batch_size
-            
+
+    scores=[0]*len(methods)
+    for ref, cand in zip(reference, candidate):
+        ref_clean = clear_for_bleu(ref, eos)
+        cand_clean = clear_for_bleu(cand, eos)
+        # Debugging print statements
+        print(ref_clean,cand_clean)
+        for i,method in enumerate(methods):
+            scores[i]+=sentence_bleu([ref_clean],cand_clean,smoothing_function=method)
+
+
+
+
+    return torch.tensor(scores), batch_size
+
 
