@@ -3,11 +3,12 @@ from torch.utils.data import Dataset, DataLoader
 import torch
 from tqdm import tqdm
 class LengthBatchSampler:
-    def __init__(self, lengths: torch.Tensor, max_len, ignore_len, shuffle=False):
+    def __init__(self, lengths: torch.Tensor, max_len, ignore_len, max_batch,shuffle=False):
         self.max_len = max_len
         self.ignore_len = ignore_len
         self.shuffle = shuffle
         self.lengths = lengths
+        self.max_batch = max_batch
         self.batches = self._create_batches()
 
     def _create_batches(self):
@@ -22,7 +23,7 @@ class LengthBatchSampler:
 
         for i in tqdm(filtered_indices, desc="creating batches", total=len(filtered_indices)):
             item_len = self.lengths[i].item()
-            if (current_n + 1) * max(item_len, max_len) <= self.max_len:
+            if (current_n + 1) * max(item_len, max_len) <= self.max_len and len(current_batch) < self.max_batch:
                 current_batch.append(i.item())
                 max_len = max(max_len, item_len)
                 current_n += 1

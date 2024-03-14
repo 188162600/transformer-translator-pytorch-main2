@@ -66,6 +66,7 @@ class BaseOptions():
         parser.add_argument("--eval_accuracy_pth"      , type=str   , help="the path of the json file that saves eval accuracy"  , default='{checkpoints_dir}/{project_name}/trails/{epoch}_eval_accuracy.json')
         parser.add_argument("--batch_max_len"         , type=int   , help="max length of the batch"  , default=10000)
         parser.add_argument("--batch_ignore_len"      , type=int   , help="ignore length of the batch"  , default=10000)
+        parser.add_argument("--max_batch",type=int,default=float('inf'))
         parser.add_argument("--num_threads",type=int,default=4)
         parser.add_argument("--retokenize",type=bool,default=False)
         parser.add_argument("--save_in_memory",type=bool,default=False)

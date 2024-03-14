@@ -3,6 +3,7 @@ import torch.nn.functional as F
 
 import os
 from torch.optim.lr_scheduler import LambdaLR
+from datasets import load_metric
 
 def pad_to_max_with_mask(data):
     """
@@ -208,3 +209,28 @@ def get_linear_schedule_with_warmup(optimizer, num_warmup_steps, num_training_st
         )
 
     return LambdaLR(optimizer, lr_lambda, last_epoch)
+
+def clear_for_bleu(data:torch.Tensor,eos=4):
+        assert len(data.shape)==1
+        data=list(data)
+        try:
+            eos_index=data.index(eos)
+            
+        except ValueError:
+            eos_index=-1
+        return data[:eos_index]
+bleu=load_metric("bleu")
+def get_bleu_score(reference, candidate, eos=4):
+    assert reference.size(0) == candidate.size(0)
+    batch_size = reference.size(0)
+    #print("batch_size",batch_size)
+    result=0
+    for ref,cand in zip(reference,candidate):
+        ref=clear_for_bleu(ref,eos)
+        cand=clear_for_bleu(cand,eos)
+        result+=bleu.compute(predictions=[cand],references=[[ref]])["bleu"]
+       
+       
+    return result,batch_size
+            
+

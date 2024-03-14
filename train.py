@@ -162,8 +162,8 @@ def get_data_loader(opt):
     filter_len=max(opt.batch_ignore_len,opt.batch_max_len)
     opt.max_src_seq_length = min(opt.max_src_seq_length,filter_len)
    
-    train_sampler= LengthBatchSampler(train_dataset.get_lines_length(),max_len=opt.batch_max_len,ignore_len=opt.batch_ignore_len, shuffle=True)
-    eval_sampler = LengthBatchSampler(eval_dataset.get_lines_length(),max_len=opt.batch_max_len,ignore_len=opt.batch_ignore_len, shuffle=False)
+    train_sampler= LengthBatchSampler(train_dataset.get_lines_length(),max_len=opt.batch_max_len,ignore_len=opt.batch_ignore_len,max_batch=opt.max_batch, shuffle=True)
+    eval_sampler = LengthBatchSampler(eval_dataset.get_lines_length(),max_len=1,ignore_len=opt.batch_ignore_len,max_batch =opt.max_batch,shuffle=False)
    
     #print("train_sampler",list(train_sampler)[0:5])
     #print("eval_sampler",list(eval_sampler)[0:5])
@@ -204,58 +204,67 @@ if __name__ == "__main__":
     # model.load_network()
     # total_iters = 0                # the total number of training iterations
     for epoch in range(opt.num_of_epochs):
-        opt.epoch = epoch
-        loss_sum_train = 0
-        err_train = 0
-        num_tokens_train = 0
+        # opt.epoch = epoch
+        # loss_sum_train = 0
+        # err_train = 0
+        # num_tokens_train = 0
 
-        #  train loop
+        # #  train loop
 
-        for i, batch in tqdm(enumerate(dataloader_train), total=len(dataloader_train)):
-            batch = tuple(t.to(opt.device) for t in batch)
-            b_text_src, b_text_trg, b_mask_src, b_mask_trg = batch
-            #print(b_text_src.device, b_text_trg.device, b_mask_src.device, b_mask_trg.device)
+        # for i, batch in tqdm(enumerate(dataloader_train), total=len(dataloader_train)):
+          
+        #     batch = tuple(t.to(opt.device) for t in batch)
+        #     b_text_src, b_text_trg, b_mask_src, b_mask_trg = batch
+        #     #print(b_text_src.device, b_text_trg.device, b_mask_src.device, b_mask_trg.device)
 
-            model.set_input(batch)
-            loss_sum_eval_result, err_result, num_tokens_result = model.optimize_parameters()
-            loss_sum_train += loss_sum_eval_result
-            err_train += err_result
-            num_tokens_train += num_tokens_result
-            # label_smoothing(b_text_trg[:,1:], training_config["trg_vocab_size"], training_config["num_special_tokens_trg"])
+        #     model.set_input(batch)
+        #     loss_sum_eval_result, err_result, num_tokens_result = model.optimize_parameters()
+        #     loss_sum_train += loss_sum_eval_result
+        #     err_train += err_result
+        #     num_tokens_train += num_tokens_result
+        #     # label_smoothing(b_text_trg[:,1:], training_config["trg_vocab_size"], training_config["num_special_tokens_trg"])
 
-            #  b_predicts = torch.argmax(b_outputs, dim=-1)
-            #  correct += (b_predicts == b_labels).sum().item()
+        #     #  b_predicts = torch.argmax(b_outputs, dim=-1)
+        #     #  correct += (b_predicts == b_labels).sum().item()
 
-        train_loss = loss_sum_train / len(dataloader_train)
-        train_losses.append(train_loss)
-        train_acc = 1 - err_train / num_tokens_train
-        train_accuracy.append(train_acc)
-
+        # train_loss = loss_sum_train / len(dataloader_train)
+        # train_losses.append(train_loss)
+        # train_acc = 1 - err_train / num_tokens_train
+        # train_accuracy.append(train_acc)
+        train_loss=0
+        train_acc=0
+        
         loss_sum_eval = 0
         err_eval = 0
         num_tokens_eval = 0
+        bleu_score = 0
+        num_batch=0
 
         #  eval_loop
-        for i, batch in tqdm(enumerate(dataloader_eval)):
+        for i, batch in tqdm(enumerate(dataloader_eval), total=len(dataloader_eval)):
             batch = tuple(t.to(opt.device) for t in batch)
 
             model.set_input(batch)
-            loss_sum_eval_result, err_result, num_tokens_result = model.eval()
+            loss_sum_eval_result, err_result, num_tokens_result,blue_eval_result,num_batch_eval = model.eval()
+            #print("batch_eval",batch_eval)
             loss_sum_eval += loss_sum_eval_result
             err_eval += err_result
             num_tokens_eval += num_tokens_result
+            bleu_score += blue_eval_result
+            num_batch+=num_batch_eval
 
         eval_loss = loss_sum_eval / len(dataloader_eval)
         eval_losses.append(eval_loss)
         eval_acc = 1 - err_eval / num_tokens_eval
         eval_accuracy.append(eval_acc)
+        eval_bleu = bleu_score / len(dataloader_eval)
         if epoch % opt.save_epoch_freq == 0:  # cache our model every <save_epoch_freq> epochs
             print(f'saving the model at the end of epoch{epoch}')
             # model.save_networks('latest')
             model.save_network()
 
         print(
-            f'Epoch: {epoch + 1} \n Train Loss: {train_loss:.6f}, Train Acc: {train_acc:.6f} \n Eval Loss: {eval_loss:.6f}, Eval Acc: {eval_acc:.6f}')
+            f'Epoch: {epoch + 1} \n Train Loss: {train_loss:.6f}, Train Acc: {train_acc:.6f} \n Eval Loss: {eval_loss:.6f}, Eval Acc: {eval_acc:.6f}, Eval Bleu: {eval_bleu:.6f} \n')
         save_trails(opt, step_losses, train_losses, eval_losses, train_accuracy, eval_accuracy)
 
     opt.epoch = "latest"
