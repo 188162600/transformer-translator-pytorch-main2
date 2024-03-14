@@ -204,35 +204,34 @@ if __name__ == "__main__":
     # model.load_network()
     # total_iters = 0                # the total number of training iterations
     for epoch in range(opt.num_of_epochs):
-        # opt.epoch = epoch
-        # loss_sum_train = 0
-        # err_train = 0
-        # num_tokens_train = 0
+        opt.epoch = epoch
+        loss_sum_train = 0
+        err_train = 0
+        num_tokens_train = 0
 
-        # #  train loop
+        #  train loop
 
-        # for i, batch in tqdm(enumerate(dataloader_train), total=len(dataloader_train)):
+        for i, batch in tqdm(enumerate(dataloader_train), total=len(dataloader_train)):
           
-        #     batch = tuple(t.to(opt.device) for t in batch)
-        #     b_text_src, b_text_trg, b_mask_src, b_mask_trg = batch
-        #     #print(b_text_src.device, b_text_trg.device, b_mask_src.device, b_mask_trg.device)
+            batch = tuple(t.to(opt.device) for t in batch)
+            b_text_src, b_text_trg, b_mask_src, b_mask_trg = batch
+            #print(b_text_src.device, b_text_trg.device, b_mask_src.device, b_mask_trg.device)
 
-        #     model.set_input(batch)
-        #     loss_sum_eval_result, err_result, num_tokens_result = model.optimize_parameters()
-        #     loss_sum_train += loss_sum_eval_result
-        #     err_train += err_result
-        #     num_tokens_train += num_tokens_result
-        #     # label_smoothing(b_text_trg[:,1:], training_config["trg_vocab_size"], training_config["num_special_tokens_trg"])
+            model.set_input(batch)
+            loss_sum_eval_result, err_result, num_tokens_result = model.optimize_parameters()
+            loss_sum_train += loss_sum_eval_result
+            err_train += err_result
+            num_tokens_train += num_tokens_result
+            # label_smoothing(b_text_trg[:,1:], training_config["trg_vocab_size"], training_config["num_special_tokens_trg"])
 
-        #     #  b_predicts = torch.argmax(b_outputs, dim=-1)
-        #     #  correct += (b_predicts == b_labels).sum().item()
+            #  b_predicts = torch.argmax(b_outputs, dim=-1)
+            #  correct += (b_predicts == b_labels).sum().item()
 
-        # train_loss = loss_sum_train / len(dataloader_train)
-        # train_losses.append(train_loss)
-        # train_acc = 1 - err_train / num_tokens_train
-        # train_accuracy.append(train_acc)
-        train_loss=0
-        train_acc=0
+        train_loss = loss_sum_train / len(dataloader_train)
+        train_losses.append(train_loss)
+        train_acc = 1 - err_train / num_tokens_train
+        train_accuracy.append(train_acc)
+      
         
         loss_sum_eval = 0
         err_eval = 0

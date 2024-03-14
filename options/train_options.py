@@ -16,12 +16,12 @@ class TrainOptions(BaseOptions):
 
         parser.add_argument("--optimize_C_epoch", type=int,default=0)
         parser.add_argument("--optimize_G_epoch", type=int,default=0)
-        parser.add_argument("--batch_size"             , type=int   , help="batch size"                                          , default=5)
+        #parser.add_argument("--batch_size"             , type=int   , help="batch size"                                          , default=5)
         parser.add_argument("--learning_rate"          , type=float , help="learning rate"                                       , default=1e-4)
         parser.add_argument("--weight_decay"           , type=float , help="weight_decay"                                        , default=1e-4)
         parser.add_argument("--dropout_probability"    , type=float , help="dropout prob"                                        , default=1e-1)
         parser.add_argument("--model_load_path"        , type=str   , help="the directory to load model"                         , default=None)
-        parser.add_argument("--save_epoch_freq", type=int,default=5)
+        parser.add_argument("--save_epoch_freq", type=int,default=1)
         #parser.add_argument("--batch_size", type=int, help="batch size", default=5)
         self.is_train = True
         return parser
