@@ -256,7 +256,7 @@ if __name__ == "__main__":
         eval_losses.append(eval_loss)
         eval_acc = 1 - err_eval / num_tokens_eval
         eval_accuracy.append(eval_acc)
-        eval_bleu = bleu_score / len(dataloader_eval)
+        eval_bleu = bleu_score / num_batch
         if epoch % opt.save_epoch_freq == 0:  # cache our model every <save_epoch_freq> epochs
             print(f'saving the model at the end of epoch{epoch}')
             # model.save_networks('latest')
