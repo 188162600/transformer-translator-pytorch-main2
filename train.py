@@ -249,7 +249,7 @@ if __name__ == "__main__":
             loss_sum_eval += loss_sum_eval_result
             err_eval += err_result
             num_tokens_eval += num_tokens_result
-            bleu_score += blue_eval_result
+            bleu_score = blue_eval_result+bleu_score
             num_batch+=num_batch_eval
 
         eval_loss = loss_sum_eval / len(dataloader_eval)

@@ -252,7 +252,7 @@ def get_bleu_score(reference: torch.Tensor, candidate: torch.Tensor, eos=4,
         ref_clean = clear_for_bleu(ref, eos)
         cand_clean = clear_for_bleu(cand, eos)
         # Debugging print statements
-        print(ref_clean,cand_clean)
+        #print(ref_clean,cand_clean)
         for i,method in enumerate(methods):
             scores[i]+=sentence_bleu([ref_clean],cand_clean,smoothing_function=method)
         scores[-1]+=sentence_bleu([ref_clean],cand_clean,smoothing_function=select_smoothing_function(min(len(ref_clean),len(cand_clean))))
